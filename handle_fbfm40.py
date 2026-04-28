@@ -18,8 +18,8 @@ import matplotlib.pyplot as plt
 from geopandas import read_file
  
 # ── FILE PATHS ────────────────────────────────────────────────────────────────
-TIF_PATH = "1777406920393_LF2024_FBFM40_CONUS.tif"
-DBF_PATH = "1777406920399_LF2024_FBFM40_CONUS.dbf"
+TIF_PATH = "landfire_data/1777406920393_LF2024_FBFM40_CONUS.tif"
+DBF_PATH = "landfire_data/1777406920399_LF2024_FBFM40_CONUS.dbf"
 OUTPUT_CSV = "fbfm40_wide.csv"
  
 NODATA_RASTER = 32767   # raw NoData value stored in the TIF
