@@ -208,3 +208,6 @@ __marimo__/
 
 extracted/
 .DS_Store
+handle_fbfm40.py
+plots/
+fbfm40_wide.csv

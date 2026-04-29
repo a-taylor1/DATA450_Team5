@@ -1,25 +1,23 @@
 """
-fbfm40_process.py
+handle_fbfm40.py
 -----------------
 Processes the LF2024 FBFM40 raster + DBF attribute table into a wide-format
-DataFrame, mirrors the EVC pipeline in datamining_project2_updated.ipynb.
- 
-Usage:
-    python fbfm40_process.py
+DataFrame.
  
 Outputs:
-    fbfm40_wide.csv   – wide-format pixel table (X, Y, EVCODE, one-hot fuel model cols)
+    fbfm40_wide.csv   - wide-format pixel table (X, Y, EVCODE, one-hot fuel model cols)
 """
  
 import rasterio
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from geopandas import read_file
  
 # ── FILE PATHS ────────────────────────────────────────────────────────────────
-TIF_PATH = "landfire_data/1777406920393_LF2024_FBFM40_CONUS.tif"
-DBF_PATH = "landfire_data/1777406920399_LF2024_FBFM40_CONUS.dbf"
+TIF_PATH = "landfire_data/LF2024_FBFM40_CONUS.tif"
+DBF_PATH = "landfire_data/LF2024_FBFM40_CONUS.dbf"
 OUTPUT_CSV = "fbfm40_wide.csv"
  
 NODATA_RASTER = 32767   # raw NoData value stored in the TIF
@@ -115,7 +113,7 @@ dist = {c: new_df[c].sum() for c in fuel_cols}
 dist_series = pd.Series(dist).sort_values(ascending=False)
 total = len(new_df)
 for name, count in dist_series.items():
-    print(f"  {name:<40s} {count:>8,}  ({count/total*100:5.1f}%)")
+    print(f"  {name:<40s} {count:>8,}  ({count/total*100:5.1f}%)") # type: ignore
  
 # ── 7. SAVE ───────────────────────────────────────────────────────────────────
 print(f"\nSaving to {OUTPUT_CSV} …")
@@ -123,30 +121,32 @@ new_df.to_csv(OUTPUT_CSV, index=False)
 print("Done.")
  
 # ── 8. HEXBIN MAP (spatial density of each fuel group) ───────────────────────
-def hexplot_column(column_name: str, alt_title: str = None):
+def hexplot_column(column_name: str, alt_title: str = None): # type: ignore
     if alt_title is None:
         alt_title = column_name
     plt.figure(figsize=(12, 10))
     hb = plt.hexbin(
-        x=new_df["X"],
-        y=new_df["Y"],
-        C=new_df[column_name].astype(float),
-        reduce_C_function=np.mean,
-        gridsize=100,
-        cmap="Oranges",
-        mincnt=1,
+        x = new_df["X"],
+        y = new_df["Y"],
+        C = new_df[column_name].astype(float),
+        reduce_C_function = np.mean,
+        gridsize = 100,
+        cmap = "Oranges",
+        mincnt = 1,
     )
-    plt.colorbar(hb, label=f"Fraction of pixels — {alt_title}")
+    plt.colorbar(hb, label = f"Fraction of pixels — {alt_title}")
     plt.title(f"Spatial Distribution: {alt_title}")
     plt.xlabel("X Coordinate")
     plt.ylabel("Y Coordinate")
     plt.tight_layout()
-    plt.savefig(f"hexbin_{column_name}.png", dpi=150)
+    plt.savefig(f"plots/hexbin_{column_name}.png", dpi=150)
     plt.show()
     print(f"  Saved hexbin_{column_name}.png")
  
 # Plot the top 3 fuel models by pixel count
 top3 = dist_series.head(3).index.tolist()
 print(f"\nPlotting hexbin maps for top 3 fuel models: {top3}")
+try: os.mkdir('plots/')
+except Exception as e: print('plots/ already exists!')
 for col in top3:
     hexplot_column(col)
